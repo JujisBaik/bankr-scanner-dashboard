@@ -2,6 +2,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { saveResults, getLatestResults, getHistory, ScanResult } from '@/lib/storage';
 
+// Force dynamic rendering (no caching of API routes)
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // GET /api/results — return latest scan results
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -9,12 +13,19 @@ export async function GET(req: NextRequest) {
 
   if (mode === 'history') {
     const history = await getHistory();
-    return NextResponse.json({ results: history });
+    return NextResponse.json({ 
+      count: history.length,
+      results: history 
+    });
   }
 
   const latest = await getLatestResults();
   if (!latest) {
-    return NextResponse.json({ error: 'No scan results yet' }, { status: 404 });
+    return NextResponse.json({ 
+      error: 'No scan results yet',
+      hint: 'Results appear after the first VPS push (every 10 min)',
+      status: 'waiting'
+    }, { status: 404 });
   }
   return NextResponse.json(latest);
 }
@@ -44,7 +55,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       id: result.id,
-      timestamp: result.timestamp 
+      timestamp: result.timestamp,
+      tokenCount: result.tokens.length,
+      summary: result.summary,
     });
   } catch (error) {
     return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
