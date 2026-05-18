@@ -264,6 +264,7 @@ export default function Dashboard() {
   const [error, setError] = useState('');
   const [expanded, setExpanded] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterKey>('ALL');
+  const [copiedAddress, setCopiedAddress] = useState('');
 
   useEffect(() => {
     let mounted = true;
@@ -344,6 +345,13 @@ export default function Dashboard() {
   const socialCoverage = data
     ? data.tokens.filter(token => Object.values(mergeSocials(token, findEnrichment(token))).some(Boolean)).length
     : 0;
+
+  const copyAddress = async (address: string) => {
+    if (!address) return;
+    await navigator.clipboard.writeText(address);
+    setCopiedAddress(address);
+    window.setTimeout(() => setCopiedAddress(''), 1200);
+  };
 
   return (
     <main style={{ margin: '0 auto', maxWidth: 1180, padding: '24px 16px 36px' }}>
@@ -454,6 +462,26 @@ export default function Dashboard() {
                         <h2 style={{ color: colors.text, fontSize: 19, fontWeight: 900, margin: 0 }}>{token.name}</h2>
                         <span style={{ color: colors.muted, fontSize: 13, fontWeight: 900 }}>{token.symbol}</span>
                         {address && <span style={{ color: colors.dim, fontSize: 12 }}>{shortAddress(address)}</span>}
+                        {address && (
+                          <button
+                            onClick={event => {
+                              event.stopPropagation();
+                              copyAddress(address);
+                            }}
+                            style={{
+                              background: copiedAddress === address ? colors.hot : '#111827',
+                              border: `1px solid ${copiedAddress === address ? colors.hot : '#263244'}`,
+                              borderRadius: 6,
+                              color: copiedAddress === address ? colors.bg : '#cbd5e1',
+                              cursor: 'pointer',
+                              fontSize: 11,
+                              fontWeight: 900,
+                              padding: '5px 7px',
+                            }}
+                          >
+                            {copiedAddress === address ? 'Copied' : 'Copy CA'}
+                          </button>
+                        )}
                         <span style={{ border: `1px solid ${decisionColor(decision)}`, borderRadius: 999, color: decisionColor(decision), fontSize: 11, fontWeight: 900, padding: '3px 7px' }}>
                           {decision}
                         </span>
@@ -490,6 +518,31 @@ export default function Dashboard() {
 
                   {isOpen && (
                     <div style={{ borderTop: `1px solid ${colors.border}`, marginTop: 16, paddingTop: 16 }}>
+                      {address && (
+                        <div style={{ alignItems: 'center', background: colors.panel2, border: `1px solid ${colors.border}`, borderRadius: 8, display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 14, padding: 12 }}>
+                          <div style={{ color: colors.dim, fontSize: 11, fontWeight: 900, textTransform: 'uppercase' }}>CA</div>
+                          <code style={{ color: '#cbd5e1', flex: 1, fontSize: 12, minWidth: 220, overflowWrap: 'anywhere' }}>{address}</code>
+                          <button
+                            onClick={event => {
+                              event.stopPropagation();
+                              copyAddress(address);
+                            }}
+                            style={{
+                              background: copiedAddress === address ? colors.hot : colors.panel,
+                              border: `1px solid ${copiedAddress === address ? colors.hot : '#263244'}`,
+                              borderRadius: 6,
+                              color: copiedAddress === address ? colors.bg : '#cbd5e1',
+                              cursor: 'pointer',
+                              fontSize: 12,
+                              fontWeight: 900,
+                              padding: '8px 10px',
+                            }}
+                          >
+                            {copiedAddress === address ? 'Copied' : 'Copy'}
+                          </button>
+                        </div>
+                      )}
+
                       <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', marginBottom: 16 }}>
                         <div>
                           <Stat label="Team" value={`${token.teamScore}/10`} />
