@@ -46,6 +46,8 @@ export async function POST(req: NextRequest) {
       id: `scan_${Date.now()}`,
       timestamp: new Date().toISOString(),
       model: body.model || 'mimo-v2-pro',
+      generatedAt: body.generatedAt,
+      scanner: body.scanner,
       summary: body.summary,
       tokens: body.tokens,
     };
